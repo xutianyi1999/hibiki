@@ -73,6 +73,7 @@ fn exec(decode_count: &AtomicU32, prompt_list: &[String]) -> Result<()> {
                         if model.is_eog_token(out) {
                             tokens_count[seq_id] = -1;
                             out_text[seq_id].flush()?;
+                            println!("seq_id: {} eog", seq_id);
                             continue;
                         }
 
@@ -82,6 +83,7 @@ fn exec(decode_count: &AtomicU32, prompt_list: &[String]) -> Result<()> {
                         tokens_count[seq_id] += 1;
 
                         if tokens_count[seq_id] as u32 >= ctx_size &&tokens_count[seq_id] as u32 % ctx_size == 0 {
+                            println!("seq_id: {} clear_kv_cache", seq_id);
                             session.clear_kv_cache_seq(Some(seq_id as u32), Some(0), Some(ctx_size / 2))?;
                             session.kv_cache_seq_add(seq_id as i32, Some(ctx_size / 2), Some(ctx_size), ctx_size as i32 / 2)?;
                         }
