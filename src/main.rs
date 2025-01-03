@@ -65,6 +65,8 @@ fn exec(batch_size: i32, decode_count: &AtomicU32) -> Result<()> {
             batch.clear();
             batch.add(out, n_cur, &[seq_id], true)?;
         }
+
+        session.clear_kv_cache();
         n_cur += 1;
     }
 
