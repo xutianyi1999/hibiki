@@ -42,6 +42,7 @@ fn exec(decode_count: &AtomicU32, prompt_list: &[String]) -> Result<()> {
                 // let input = model.apply_chat_template(Some("llama2".to_string()), vec![LlamaChatMessage::new("user".to_string(), "Hello!".to_string())?], false)?;
 
                 let mut tokens_count = vec![0i32; input_list.len()];
+                let mut curr_count = vec![0i32; input_list.len()];
                 let mut out_text = Vec::new();
 
                 for (i, (tokens, prompt)) in input_list.iter().enumerate() {
@@ -81,11 +82,13 @@ fn exec(decode_count: &AtomicU32, prompt_list: &[String]) -> Result<()> {
 
                         batch.add(out, tokens_count[seq_id] - 1, &[seq_id as i32], true)?;
                         tokens_count[seq_id] += 1;
+                        curr_count[seq_id] += 1;
 
-                        if tokens_count[seq_id] as u32 >= ctx_size &&tokens_count[seq_id] as u32 % ctx_size == 0 {
+                        if curr_count[seq_id] as u32 >= ctx_size {
                             println!("seq_id: {} clear_kv_cache", seq_id);
                             session.clear_kv_cache_seq(Some(seq_id as u32), Some(0), Some(ctx_size / 2))?;
                             session.kv_cache_seq_add(seq_id as i32, Some(ctx_size / 2), Some(ctx_size), ctx_size as i32 / 2)?;
+                            curr_count[seq_id] /= 2;
                         }
                     }
                 }
